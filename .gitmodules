@@ -1,0 +1,36 @@
+[submodule "retdec"]
+	path = retdec
+	url = ../retdec.git
+[submodule "llvm"]
+	path = llvm
+	url = ../llvm.git
+[submodule "idaplugin"]
+	path = idaplugin
+	url = ../retdec-idaplugin.git
+[submodule "support"]
+	path = support
+	url = ../retdec-support.git
+[submodule "yaramod"]
+	path = yaramod
+	url = ../yaramod.git
+[submodule "build-system-tests"]
+	path = build-system-tests
+	url = ../retdec-build-system-tests.git
+[submodule "regression-tests"]
+	path = regression-tests
+	url = ../retdec-regression-tests.git
+[submodule "regression-tests-framework"]
+	path = regression-tests-framework
+	url = ../retdec-regression-tests-framework.git
+[submodule "yara"]
+	path = yara
+	url = ../yara.git
+[submodule "capstone"]
+	path = capstone
+	url = ../capstone.git
+[submodule "keystone"]
+	path = keystone
+	url = ../keystone.git
+[submodule "googletest"]
+	path = googletest
+	url = ../googletest.git
