@@ -1,23 +1,9 @@
 #!/usr/bin/env bash
 # vim: set autoindent smartindent ts=4 sw=4 sts=4 noet filetype=sh:
 [[ -t 1 ]] && { cG="\e[1;32m"; cR="\e[1;31m"; cB="\e[1;34m"; cW="\e[1;37m"; cY="\e[1;33m"; cG_="\e[0;32m"; cR_="\e[0;31m"; cB_="\e[0;34m"; cW_="\e[0;37m"; cY_="\e[0;33m"; cZ="\e[0m"; export cR cG cB cY cW cR_ cG_ cB_ cY_ cW_ cZ; }
-TOOLS_NEEDED="awk git readlink"
+TOOLS_NEEDED="awk git"
 for tool in $TOOLS_NEEDED; do type $tool > /dev/null 2>&1 || { echo -e "${cR}ERROR:${cZ} couldn't find '$tool' which is required by this script."; exit 1; }; done
 pushd $(dirname $0) > /dev/null; CURRABSPATH=$(readlink -nf "$(pwd)"); popd > /dev/null; # Get the directory in which the script resides
-
-function list_remotes
-{
-	local path="$1"
-	local indent="${2:-    }"
-	local rmt_originurl=$(git -C "$path" remote get-url origin)
-	echo -e "${indent}${cG}$path:${cZ} ${cW}origin${cZ}   == ${cW}$rmt_originurl${cZ}"
-	rmt_upstreamurl=$(git -C "$path" remote get-url upstream 2> /dev/null || echo -n "")
-	if [[ -n "$rmt_upstreamurl" ]]; then
-		echo -e "${indent}${cG}$path:${cZ} ${cW}upstream${cZ} == ${cW}$rmt_upstreamurl${cZ}"
-	else
-		echo -e "${indent}${cG}$path:${cZ} ${cW}upstream${cZ} ... ${cY}does not exist!${cZ}"
-	fi
-}
 
 # Walk through the submodules from .gitmodules
 git -C "$CURRABSPATH" config --file "$CURRABSPATH/.gitmodules" --name-only --get-regexp path|while read modpathkey; do
@@ -32,8 +18,15 @@ git -C "$CURRABSPATH" config --file "$CURRABSPATH/.gitmodules" --name-only --get
 	echo -e "  ${cW}path${cZ} == ${cW}$modpath${cZ}"
 	modabsurl="$(readlink -nf "$CURRABSPATH/$modurl")"
 	echo -e "  ${cW}url${cZ}  == ${cW}$modurl${cZ} == $modabsurl"
-	list_remotes "$modpath"
-	list_remotes "$modurl"
+	rmt_originurl=$(git "--git-dir=$modabsurl" remote get-url origin)
+	echo -e "    ${cG}$modurl:${cZ} ${cW}origin${cZ}   == ${cW}$rmt_originurl${cZ}"
+	rmt_upstreamurl=$(git "--git-dir=$modabsurl" remote get-url upstream 2> /dev/null || echo -n "")
+	if [[ -n "$rmt_upstreamurl" ]]; then
+		echo -e "    ${cG}$modurl:${cZ} ${cW}upstream${cZ} == ${cW}$rmt_upstreamurl${cZ}"
+		( set -x; git "--git-dir=$modabsurl" fetch )
+	else
+		echo -e "    ${cG}$modurl:${cZ} ${cW}upstream${cZ} ... ${cY}does not exist!${cZ}"
+	fi
 	clonepath="${modurl%.git}"
 	cloneabspath="${modabsurl%.git}"
 	if [[ -d "$cloneabspath" ]]; then
@@ -42,6 +35,8 @@ git -C "$CURRABSPATH" config --file "$CURRABSPATH/.gitmodules" --name-only --get
 		echo -e "        ${cY_}$(git -C "$cloneabspath" log --oneline -n 1 --pretty=format:"%H")${cZ} ${cY}$(git -C "$cloneabspath" log --oneline -n 1 --pretty=format:"%d")${cZ}"
 		echo -e "        ${cW}$(git -C "$cloneabspath" log --oneline -n 1 --pretty=format:"%an")${cZ} $(git -C "$cloneabspath" log --oneline -n 1 --pretty=format:"%ae")"
 		echo -e "        ${cW}$(git -C "$cloneabspath" log --oneline -n 1 --pretty=format:"[%ai]")${cZ} $(git -C "$cloneabspath" log --oneline -n 1 --pretty=format:"%s")"
+		echo -e "        ${cG}UPDATING ...${cZ}"
+		( set -x; git -C "$cloneabspath" pull --all )
 	else
 		echo -e "      ${cG}$clonepath:${cZ} ... ${cR}DOES NOT EXIST!${cZ}"
 	fi

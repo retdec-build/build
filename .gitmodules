@@ -34,3 +34,9 @@
 [submodule "googletest"]
 	path = googletest
 	url = ../googletest.git
+[submodule "nasm"]
+	path = nasm
+	url = ../nasm.git
+[submodule "openssl"]
+	path = openssl
+	url = ../openssl.git
